@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>App Space — Parking Booking Planner</title>
+  <style>
+    :root {
+      --accent:#0077b6;
+      --muted:#666;
+      --card-bg:#fff;
+      --page-bg:linear-gradient(135deg,#e8f7ff,#ffffff);
+    }
+
+    body {
+      font-family:"Segoe UI",Roboto,sans-serif;
+      margin:0;
+      padding:20px;
+      background:var(--page-bg);
+      color:#222;
+      line-height:1.4;
+    }
+
+    header {
+      text-align:center;
+      margin-bottom:24px;
+      padding:0 10px;
+    }
+
+    h1 {
+      margin:0 0 8px;
+      color:var(--accent);
+      font-size:1.8rem;
+    }
+
+    p.lead {
+      margin:0;
+      color:var(--muted);
+      font-size:1rem;
+    }
+
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:16px;
+      margin-top:24px;
+    }
+
+    .card {
+      background:var(--card-bg);
+      border-radius:12px;
+      padding:16px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.08);
+      margin-bottom:12px;
+      transition:transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform:scale(1.02);
+      box-shadow:0 6px 14px rgba(0,0,0,0.1);
+    }
+
+    .card h3 {
+      margin:0 0 10px 0;
+      color:#0b5d88;
+      font-size:1.1rem;
+    }
+
+    .slot {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      padding:10px 12px;
+      border-radius:8px;
+      margin-bottom:8px;
+      background:linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.01));
+      font-size:0.95rem;
+    }
+
+    .slot .label {
+      font-weight:700;
+      color:var(--accent);
+    }
+
+    .slot .date {
+      color:#222;
+      font-size:0.93rem;
+    }
+
+    .today {border-left:4px solid #2e7d32;padding-left:8px;}
+    .tomorrow {border-left:4px solid #1565c0;padding-left:8px;}
+    .selected {border-left:4px solid #6a1b9a;padding-left:8px;}
+
+    .calendar-section {
+      text-align:center;
+      margin-top:36px;
+      background:#fff;
+      padding:20px;
+      border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);
+      max-width:520px;
+      margin-left:auto;
+      margin-right:auto;
+    }
+
+    input[type="date"] {
+      padding:10px 14px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      font-size:1rem;
+      margin-top:6px;
+    }
+
+    #selectedResult { margin-top:20px; text-align:left; }
+
+    /* Feedback section */
+    .feedback {
+      background:#fff;
+      padding:20px;
+      border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);
+      margin:40px auto 20px;
+      max-width:520px;
+      text-align:center;
+    }
+
+    .feedback h3 { color:#0b5d88; margin-bottom:10px; }
+    .feedback p { color:#555; margin-bottom:15px; }
+
+    form input, form textarea {
+      width:95%;
+      padding:10px;
+      margin-bottom:12px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      font-size:1rem;
+      font-family:inherit;
+    }
+
+    form textarea {
+      height:90px;
+      resize:vertical;
+    }
+
+    form button {
+      background:var(--accent);
+      color:white;
+      border:none;
+      padding:10px 16px;
+      border-radius:6px;
+      font-size:1rem;
+      cursor:pointer;
+      transition:background 0.2s ease;
+    }
+
+    form button:hover {
+      background:#005f8e;
+    }
+
+    .contact {
+      text-align:center;
+      margin-top:20px;
+      color:#333;
+      font-size:0.95rem;
+    }
+
+    .contact a {
+      color:var(--accent);
+      text-decoration:none;
+      font-weight:500;
+    }
+
+    .contact a:hover {
+      text-decoration:underline;
+    }
+
+    footer {
+      text-align:center;
+      margin-top:30px;
+      color:var(--muted);
+      font-size:0.85rem;
+      padding-bottom:10px;
+    }
+
+    /* ✅ Mobile Tweaks */
+    @media (max-width:600px) {
+      h1 { font-size:1.5rem; }
+      .card h3 { font-size:1rem; }
+      body { padding:16px; }
+      .calendar-section, .feedback { padding:16px; }
+      .slot { font-size:0.9rem; }
+      input[type="date"], form input, form textarea { width:100%; font-size:1rem; }
+      form button { width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🚗 App Space — Parking Booking Planner</h1>
+    <p class="lead">Check all possible parking booking windows anytime.</p>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="calendar-section">
+    <h3>📅 Choose a date</h3>
+    <p>Select any date to explore booking possibilities (both directions):</p>
+    <input type="date" id="datePicker">
+    <div id="selectedResult"></div>
+  </div>
+
+  <!-- 💬 Feedback Section -->
+  <div class="feedback">
+    <h3>💬 Feedback / Suggestions</h3>
+    <p>Have ideas to make this tool better? Let me know!</p>
+    <form action="https://formspree.io/f/mnqelolr" method="POST">
+      <input type="text" name="name" placeholder="Your Name" required>
+      <input type="email" name="email" placeholder="Your Email (optional)">
+      <textarea name="message" placeholder="Your feedback or suggestion..." required></textarea>
+      <button type="submit">Send Feedback</button>
+    </form>
+  </div>
+
+  <!-- 📞 Contact Info -->
+  <div class="contact">
+    <p>📧 Reach me at: <a href="mailto:chaits969@gmail.com">chaits969@gmail.com</a></p>
+  </div>
+
+  <footer>
+    D = same day • D+ means after • D− means before. <br>
+    Works perfectly on mobile and desktop 🌐
+  </footer>
+
+  <script>
+    function formatDate(d) {
+      return d.toLocaleDateString('en-GB', {
+        weekday:'short', day:'2-digit', month:'short', year:'numeric'
+      });
+    }
+
+    const today=new Date();
+    const grid=document.getElementById('grid');
+
+    const checkOffsets=[
+      {label:"D (Today)",offset:0},
+      {label:"D+1 (Tomorrow)",offset:1},
+      {label:"D+3",offset:3},
+      {label:"D+7",offset:7},
+      {label:"D+14",offset:14},
+      {label:"D+28",offset:28}
+    ];
+
+    const bookBefore=[
+      {label:"D-28 (Book 28 days earlier)",offset:-28},
+      {label:"D-14 (Book 14 days earlier)",offset:-14},
+      {label:"D-7 (Book 7 days earlier)",offset:-7},
+      {label:"D-3 (Book 3 days earlier)",offset:-3},
+      {label:"D-1 (Book 1 day earlier)",offset:-1},
+      {label:"D (Same day booking)",offset:0}
+    ];
+
+    const bookAfter=[
+      {label:"D (Same day parking)",offset:0},
+      {label:"D+1",offset:1},
+      {label:"D+3",offset:3},
+      {label:"D+7",offset:7},
+      {label:"D+14",offset:14},
+      {label:"D+28",offset:28}
+    ];
+
+    const refDays=[
+      {title:`If checking today — ${formatDate(today)}`,refDate:today,css:'today'},
+      {title:`If checking tomorrow — ${formatDate(new Date(today.getFullYear(),today.getMonth(),today.getDate()+1))}`,
+       refDate:new Date(today.getFullYear(),today.getMonth(),today.getDate()+1),css:'tomorrow'}
+    ];
+
+    refDays.forEach(ref=>{
+      const card=document.createElement('div');
+      card.className='card';
+      card.innerHTML=`<h3>${ref.title}</h3>`;
+      checkOffsets.forEach(o=>{
+        const d=new Date(ref.refDate);
+        d.setDate(d.getDate()+o.offset);
+        const slot=document.createElement('div');
+        slot.className='slot '+ref.css;
+        slot.innerHTML=`<div class="label">${o.label}</div><div class="date">${formatDate(d)}</div>`;
+        card.appendChild(slot);
+      });
+      grid.appendChild(card);
+    });
+
+    // Calendar Picker
+    const picker=document.getElementById('datePicker');
+    const result=document.getElementById('selectedResult');
+
+    picker.addEventListener('change',()=>{
+      result.innerHTML="";
+      if(!picker.value)return;
+      const sel=new Date(picker.value);
+
+      // 1️⃣ If you want parking for that date
+      const card1=document.createElement('div');
+      card1.className='card';
+      card1.innerHTML=`<h3>🅿️ If you want parking for ${formatDate(sel)}</h3>`;
+      bookBefore.forEach(o=>{
+        const d=new Date(sel);
+        d.setDate(sel.getDate()+o.offset);
+        const slot=document.createElement('div');
+        slot.className='slot selected';
+        slot.innerHTML=`<div class="label">${o.label}</div><div class="date">${formatDate(d)}</div>`;
+        card1.appendChild(slot);
+      });
+      result.appendChild(card1);
+
+      // 2️⃣ If you are booking on that date
+      const card2=document.createElement('div');
+      card2.className='card';
+      card2.innerHTML=`<h3>📆 If you are booking on ${formatDate(sel)}</h3>`;
+      bookAfter.forEach(o=>{
+        const d=new Date(sel);
+        d.setDate(sel.getDate()+o.offset);
+        const slot=document.createElement('div');
+        slot.className='slot selected';
+        slot.innerHTML=`<div class="label">${o.label}</div><div class="date">${formatDate(d)}</div>`;
+        card2.appendChild(slot);
+      });
+      result.appendChild(card2);
+    });
+  </script>
+</body>
+</html>
